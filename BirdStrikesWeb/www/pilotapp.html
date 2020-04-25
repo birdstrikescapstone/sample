@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>Scrolling Nav - Start Bootstrap Template</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Custom styles for this template -->
+  <link href="css/scrolling-nav.css" rel="stylesheet">
+  
+  <link rel="stylesheet" href="css/google-fonts.css">
+  <link rel="stylesheet" href="css/main.css">
+  
+  <style type="text/css">
+    
+    header {
+      background-color: #112e51;
+      background-image: url(header-image.jpg);
+      background-size: cover;
+      background-position: center;
+      text-align: center;
+      color: white;
+      text-shadow: rgba(0, 0, 0, 0.7) 0 0 30px;
+    }
+    @media screen {
+      header {
+        display: block;
+      }
+    }
+    header h3 {
+      padding: 100px 10px 10px 10px;
+      margin: 0;
+    }
+    header p {
+      margin: 0;
+      padding: 0 10px 80px 10px;
+    }
+    header p a, header p a:active, header p a:visited {
+      color: white;
+    }
+    section#college-search {
+      padding-top: 20px;
+      padding-bottom: 20px;
+      background-color: #f1f1f1;
+    }
+    div[role=search] {
+      width: 550px;
+      max-width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    section {
+      padding: 30px 0;
+    }
+    section#school-details {
+      position: relative;
+      padding-top: 0;
+    }
+  </style>
+  <script>
+    $(document).on("keydown", "#search", function(e) {
+      if (e.which == 13) {
+        $("#search_button").click();
+      }
+    });
+  </script>
+
+</head>
+
+<body id="page-top">
+
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="mainNav">
+    <div class="container">
+      <a class="navbar-brand js-scroll-trigger" href="#page-top">Start Bootstrap</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarResponsive">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link js-scroll-trigger" href="/index.html#about">About BirdStrikes</a>
+          </li>
+          <li class="nav-item">
+            <h6><a class="nav-link js-scroll-trigger" href="/index.html#services">Analysis</a></h6>
+          </li>
+          <li class="nav-item">
+            <h6><a class="nav-link js-scroll-trigger" href="/index.html#strikes">Tools</a></h6>
+          </li>
+          <li class="nav-item">
+            <h6><a class="nav-link js-scroll-trigger" href="/index.html#contact">Our Team</a></h6>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <header class="bg-primary text-white">
+    <div class="container text-center">
+      <h1>Welcome to Scrolling Nav</h1>
+      <p class="lead">A landing page template freshly redesigned for Bootstrap 4</p>
+    </div>
+  </header>
+
+
+  <section id="college-search">
+    <div class="usa-grid">
+      <div class="usa-width-one-whole">
+        <form class="usa-search usa-search-big" onsubmit="return false;">
+          <div role="search">
+            <label class="usa-sr-only" for="search-field-big">College name</label>
+            <input id="search" type="text" name="search" class="usa-search-input"
+            placeholder="College or city, e.g. Stanford or Boston"/>
+            <button id="search_button" type="button" class="usa-search-submit action-button">
+              <span class="usa-search-submit-text">Search</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Footer -->
+  <footer class="py-5 bg-dark">
+    <div class="container">
+      <p class="m-0 text-center text-white">Copyright &copy; Your Website 2019</p>
+    </div>
+    <!-- /.container -->
+  </footer>
+
+  <!-- Bootstrap core JavaScript -->
+  <script src="vendor/jquery/jquery.min.js"></script>
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Plugin JavaScript -->
+  <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+
+  <!-- Custom JavaScript for this theme -->
+  <script src="js/scrolling-nav.js"></script>
+
+</body>
+
+</html>

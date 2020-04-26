@@ -1,0 +1,45 @@
+---
+title: "Junk"
+author: "Tanu Kajla"
+date: "4/25/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+```{r}
+data %>%  
+  group_by(`AIRPORT ID`) %>% 
+  summarise(Strikes = sum(STRIKECOUNT))
+
+```
+
+```{r}
+air <- data.frame(
+  airfields = c("KDEN",
+                "KDFW",
+                "KORD",
+                "KSMF"),
+  latitude = c(39.86169815,
+               32.896801,
+               41.9786,
+               38.69540024),
+  longitude = c(-104.6729965,
+                -97.038002,
+                -87.9048,
+                -121.5910034),
+  strikes = c(2814,
+              2170,1557,1891))
+
+head(air)
+
+
+coord <- air %>% 
+  filter(airfields == "KDEN")
+lat<- coord[1,2]
+long<-coord[1,3]
+
+```

@@ -1,9 +1,8 @@
 library(tidyverse)
 library(shiny)
-library(RSQLite)
 library(leaflet)
 library(ggplot2)
-library(showtext)
+library(showtext) 
 library(Cairo)
 library(RCurl) # needed for showtext
 
@@ -12,12 +11,10 @@ library(RCurl) # needed for showtext
 
 # source("flickr_api.R")
 # 
-db <- readRDS("AIRFIELDS_MASTERv2.RDS")
+data <- readRDS("AIRFIELDS_MASTERv2.RDS")
 
 # Mistakes were made...
 options(shiny.table.class = "usa-table-borderless")
-
-
 
 # query_db <- function(query) {
 #   conn <- dbConnect(SQLite(), dbname = "CollegeScorecard.sqlite")
@@ -41,22 +38,10 @@ options(shiny.table.class = "usa-table-borderless")
 
 function(input, output, session) {
   
-  air <- data.frame(
-    airfields = c("KDEN",
-                  "KDFW",
-                  "KORD",
-                  "KSMF"),
-    latitude = c(39.86169815,
-                 32.896801,
-                 41.9786,
-                 38.69540024),
-    longitude = c(-104.6729965,
-                  -97.038002,
-                  -87.9048,
-                  -121.5910034)
-  )
+  # map <- leaflet() %>% addTiles() %>% setView(-93.65, 
+  #                                             42.0285, 
+  #                                             zoom = 17)
   
-
   d <- reactive({
     dist <- switch(
       input$search,
@@ -64,79 +49,61 @@ function(input, output, session) {
       kden = "KDEN",
       kdfw = "KDFW",
       kord = "KORD",
-      ksmf = "KSMF"
-    )
+      ksmf = "KSMF")
+    })
+  
+  output$summary <- renderTable({
+    data %>%  
+      filter(`AIRPORT ID`== input$airfield) %>% 
+      group_by(`AIRPORT ID`) %>% 
+      summarise(STRIKES = sum(STRIKECOUNT)) %>% 
+      arrange(-STRIKES)
+    
   })
   
-  # lat <- reactiveValues({
-  #   air %>% select(latitude) %>% filter(air$airfields == d())
+  # output$test <- renderText({
+  #   print(d())
+  #   
   # })
-  # 
-  # lng <- reactiveValues({
-  #   air %>% select(longitude) %>% filter(air$airfields == d())
-  # })
-  # 
-  # output$summary <- renderPrint({
-  #   print(lng())
-  #   print(lat())
-  # })
-  
 
+  output$map <- renderLeaflet({
+    # coord <- air %>% 
+    #   filter(airfields == input$airfield)
+    # lat<- coord[1,2]
+    # long<-coord[1,3]
+    
+    
+    mymap <- leaflet() %>% 
+      addProviderTiles(providers$OpenStreetMap,
+                       options = providerTileOptions(noWrap = TRUE)) %>% 
+     # addMarkers(lng = air$longitude, lat = air$latitude, popup = names(air)) %>% 
+      addCircleMarkers(air$longitude,air$latitude,
+                       sqrt(air$strikes) * 0.79899) %>%
+      addPopups(air$longitude,air$latitude,
+                htmltools::htmlEscape(paste(
+                  paste(air$airfields, sep = " "),
+                  paste("Strikes:", as.character(air$strikes), sep = " "),
+                  sep = ", ")))
 
-  output$mymap <- renderLeaflet({
-
-      #
-      # req(lat, lon)
-      
-      # Please use a different tile URL for your own apps--we pay for these!
-      # leaflet() %>% addTiles("//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png") %>%
-      #   addMarkers(lng = lon, lat = lat)
-    # leaflet::leaflet() %>% 
-    #   addTiles(urlTemplate = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png") %>%
-      
-      
-    leaflet()  %>%
-      addProviderTiles(providers$OpenStreetMap, options = providerTileOptions(noWrap = TRUE)) %>%
-      addMarkers(lng = -104.6729965,
-                 lat = 39.86169815)
-      # addMarkers(lng = 39.86169815, lat = -104.6729965)
-      # %>%
-      #   addCircleMarkers(
-      #     lon,
-      #     lat,
-      #     weight = 1,
-      #     radius = ~ sqrt(Count) * 0.7
+    # ,
+    #                    label = ~htmlEscape(paste(
+    #                        paste("Airfield = ", as.character(air$airfields), sep = " "),
+    #                        paste("Count = ", as.character(air$sstrikes), sep = " "),
+    #                        sep = ", ")))
+    #     #weight = 1,
+        #radius = ~ sqrt(Count) * 0.7,
+        # label = ~htmlEscape(paste(
+        #   paste("Zip = ", as.character(100), sep = " "),
+        #   paste("Count = ", as.character(100), sep = " "),
+        #   sep = ", ")))
+      #   ))) %>% 
+      # addHeatmap(
+      #   lng =  ~ air$longitude,
+      #   lat =  ~ air$latitude,
+      #   blur = 20,
+      #   max = 0.05,
+      #   radius = 15
       # )
-      # leaflet(options = leafletOptions(
-      #   minZoom = 1,
-      #   maxZoom = 5,
-      #   zoomDelta = 0.5
-      # )) %>%
-      #   addProviderTiles(providers$OpenStreetMap) %>% setView(lng = lng(),
-      #                                                         lat = lat(), zoom = 2)
-      # %>% addMarkers(m, lng = -104.6729965, lat = 39.86169815)
-    })
-
-  
-  # output$summary <- renderTable({
-  #   results <- db %>% filter(db$`AIRPORT ID` == d())
-  #   head(results)
-  # })
-  
-  # output$plot <- renderPlot({
-  #   dist <- input$search
-  #   n <- input$n
-  # 
-  #     hist(d(),
-  #          main = paste("r", dist, "(", n, ")", sep = ""),
-  #          col = "steelblue", border = "black")
-  # })
-
-
-
-  # 
-  # output$table <- renderTable({
-  #   head(data.frame(x = d()))
-  # })
-
-}
+    mymap
+    }) #the opening should show the 4 airfields and a heat map of max to min agg strikes
+ }

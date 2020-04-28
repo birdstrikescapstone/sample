@@ -1,5 +1,4 @@
-source("./Functions.R", local = TRUE)
-# source("Model.R")
+source("Functions.R")
 
 function(input, output, session) {
   # 
@@ -14,93 +13,76 @@ function(input, output, session) {
   #   })
   
   output$summary <- renderTable({
-    # t <-data %>%
-    #   filter(`AIRPORT ID`== input$airfield) %>%
-    #   group_by(`AIRPORT ID`) %>%
-    #   summarise(STRIKES = sum(STRIKECOUNT)) %>%
-    #   arrange(-STRIKES)
-    
     getDataAndRunPredict(input$airfield,input$date)
-  })
-  
-  output$map <- renderLeaflet({
-    # coord <- air %>%
-    #   filter(airfields == input$airfield)
-    # lat<- coord[1,2]
-    # long<-coord[1,3]
-    #the opening should show the 4 airfields and a heat map of max to min agg strikes
     
-    mymap <- leaflet() %>%
+
+  })
+  output$map <- renderLeaflet({
+    coord <- air %>%
+      filter(airfields == input$airfield)
+    lat<- coord[1,2]
+    long<-coord[1,3]
+    
+    mymap <- leaflet() %>% 
       addProviderTiles(providers$OpenStreetMap,
-                       options = providerTileOptions(noWrap = TRUE)) %>%
-      # addMarkers(lng = air$longitude, lat = air$latitude, popup = names(air)) %>%
-      addCircleMarkers(air$longitude, air$latitude,
-                       sqrt(air$strikes) * 0.79899) %>%
-      addPopups(air$longitude, air$latitude,
+                       options = providerTileOptions(noWrap = TRUE)) %>% 
+      addMarkers(lng = air$longitude, lat = air$latitude, popup = names(air)) %>% 
+      addCircleMarkers(air$longitude,air$latitude,
+                       sqrt(air$strikes) * 0.79899999) %>%
+      addPopups(air$longitude,air$latitude,
                 htmltools::htmlEscape(paste(
                   paste(air$airfields, sep = " "),
                   paste("Strikes:", as.character(air$strikes), sep = " "),
-                  sep = ", "
-                )))
+                  sep = ", ")))
     mymap
   })
-  
-  #Header Boxes
-  output$vboxengf <- renderValueBox({
+  output$vboxengf<-renderValueBox({
     valueBox(
       "Engine Failure:",
       subtitle = tags$p("TEXT", style = "font-size: 200%;"),
-      icon = icon("earlybirds"),
-      color = "yellow"
-    )
-  })
-  
-  
-  
-  output$vboxstrikes <- renderValueBox({
-    t <- data %>%
-      filter(`AIRPORT ID` == input$airfield) %>%
-      group_by(`AIRPORT ID`) %>%
-      summarise(STRIKES = sum(STRIKECOUNT)) %>%
-      arrange(-STRIKES)
+      icon = icon("plane"),
+      color = "yellow")
+      })
+  output$vboxstrikes <-renderValueBox({
+    t <- data %>% 
+      filter(`AIRPORT ID`== input$airfield) %>% 
+      group_by(`AIRPORT ID`) %>% 
+      summarise(STRIKES = sum(STRIKECOUNT)) %>% 
+      arrange(-STRIKES)  
     
     valueBox(
-      "Historical Strikes:",
-      subtitle = tags$p(t[1, 2], style = "font-size: 200%;"),
-      icon = icon("feather"),
-      color = "aqua"
-    )
+        paste(input$airfield," Historical Strikes:"),
+        subtitle = tags$p(t[1,2], style = "font-size: 200%;"),
+        icon = icon("feather"),
+        color = "aqua")
     
+  })
+  output$vboxrisk <-renderValueBox({
+    risk <- getDataAndRunPredict(input$airfield,input$date)
+    if(risk[1,1] == "L"){
+      valueBox(
+        "Birdstrike Risk Level:",
+        subtitle = tags$p(paste(round(risk[1,3],1),"LOW RISK"), style = "font-size: 200%;"),
+        icon = icon("earlybirds"),
+        color = "green")
+    }
+    else if(risk[1,1] == "M"){
+      valueBox(
+        "Birdstrike Risk Level:",
+        subtitle = tags$p("MEDIUM RISK", style = "font-size: 200%;"),
+        icon = icon("earlybirds"),
+        color = "yellow")
+    }
+    else valueBox(
+      "Birdstrike Risk Level:",
+      subtitle = tags$p(" ALERT! HIGH RISK!", style = "font-size: 200%;"),
+      icon = icon("earlybirds"),
+      color = "red")
+
   })
   
   
-  output$vboxrisk <- renderValueBox({
-    risk <- getDataAndRunPredict(input$airfield, input$date)
-    
-    if (risk$STRIKERISKLEVEL == "L") {
-      valueBox(
-        "Risk Level:",
-        subtitle = tags$p("LOW", style = "font-size: 200%;"),
-        icon = icon("plane"),
-        color = "green"
-      )
-    }
-    else if (risk$STRIKERISKLEVEL == "H") {
-      valueBox(
-        "Risk Level:",
-        subtitle = tags$p("HIGH", style = "font-size: 200%;"),
-        icon = icon("plane"),
-        color = "red"
-      )
-    }
-    else
-      valueBox(
-        "Risk Level:",
-        subtitle = tags$p("MEDIUM", style = "font-size: 200%;"),
-        icon = icon("plane"),
-        color = "teal"
-      )
-  })
+  
 }
 
 

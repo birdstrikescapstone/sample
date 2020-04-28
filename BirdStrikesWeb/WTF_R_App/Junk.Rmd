@@ -8,6 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+source("Functions.R")
 ```
 
 ```{r}
@@ -41,5 +42,13 @@ coord <- air %>%
   filter(airfields == "KDEN")
 lat<- coord[1,2]
 long<-coord[1,3]
+
+```
+
+
+
+```{r}
+
+risk<-getDataAndRunPredict("KDEN",Sys.Date())
 
 ```

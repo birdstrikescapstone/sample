@@ -1,4 +1,5 @@
-###### Libraries  
+
+#---------------------------- Libraries ----------------------------- 
 
   # Creating a vector of packages used within
   required.packages <- c("base","jsonlite","leaflet","lubridate","magrittr","padr","plotly","purrr","raster",
@@ -32,7 +33,7 @@
 #---------------------------- Predefined Values ----------------------------- 
   ###### Predefined Values 
   #Getting the Airfield Dataset
-  data <- readRDS("AIRFIELDS_MASTERv2.RDS")
+  data <- readRDS("data/AIRFIELDS_MASTERv2.RDS")
 
   #List of Airfields to select in the User Interface
   airfields<-c("KDEN - Denver International" = "KDEN",
@@ -57,23 +58,20 @@
     strikes = c(2814,
                 2170, 1557, 1891),
     modelfilename = c(
-      "model_xgb_KDEN.RDS",
-      "model_rf_KDFW.RDS",
-      "model_xgb_KORD.RDS",
-      "model_xgb_KSMF.RDS"
+      "data/model_xgb_KDEN.RDS",
+      "data/model_rf_KDFW.RDS",
+      "data/model_xgb_KORD.RDS",
+      "data/model_xgb_KSMF.RDS"
     ),
     avgfilename = c(
-      "Avgs_KDEN.RDS",
-      "Avgs_KDFW.RDS",
-      "Avgs_KORD.RDS",
-      "Avgs_KSMF.RDS"
+      "data/Avgs_KDEN.RDS",
+      "data/Avgs_KDFW.RDS",
+      "data/Avgs_KORD.RDS",
+      "data/Avgs_KSMF.RDS"
     )
   )
   
-  # #Model Information 
-  # source("Model.R")
-  
-  ########################################################################
+#---------------------------- Functions ----------------------------- 
   # Purpose: Function generates the input to the model based on the
   # Averages of the strikes dataset based in Day Of Year. After generating 
   # the input, executes the predict on the model and returns the  
@@ -83,7 +81,6 @@
   #        StrikeDate - Date to display the Strike Risk level
   #
   # Output: Dataframe containing data for model Input
-  #######################################################################
   getDataAndRunPredict <- function(airfield, strikedate) {
     
     # Get Averages file name from the custom dataframe
@@ -124,7 +121,7 @@
 
     
     # Load model from RDS
-    model <- readRDS(paste0(fileNames$modelfilename))
+    model <- readRDS((paste0(fileNames$modelfilename)))
     
     # Call predict with type = raw to get the risk levels
     predicted.raw <- predict(model, data, type = "raw")

@@ -58,7 +58,8 @@
     strikes = c(2814,
                 2170, 1557, 1891),
     modelfilename = c(
-      "data/model_xgb_KDEN.RDS",
+     # "data/model_xgb_KDEN.RDS",
+      "data/model_gbm_KDEN.RDS",
       "data/model_rf_KDFW.RDS",
       "data/model_xgb_KORD.RDS",
       "data/model_xgb_KSMF.RDS"

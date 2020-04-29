@@ -41,8 +41,10 @@ dashboardPage(skin = "purple",
               )
 
 )
+ 
+ ##hyperlink the faa strike data base as an option 
 
-#---------------------------- OTHER UI ----------------------------- 
+# #---------------------------- OTHER UI -----------------------------
 # shinyUI(navbarPage(title = "BirdStrikes",
 #                    theme = "style/style.css",
 #                    footer = includeHTML("footer.html"),

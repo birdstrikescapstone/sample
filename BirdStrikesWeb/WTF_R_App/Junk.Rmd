@@ -50,5 +50,81 @@ long<-coord[1,3]
 ```{r}
 
 risk<-getDataAndRunPredict("KDEN",Sys.Date())
+install.packages("auk")
+library("rebird")
 
+
+devtools::install_github("ropensci/rebird")
+
+```
+
+
+```{r}
+
+getDataAndRunPredict <- function(airfield, strikedate) {
+    
+    # Get Averages file name from the custom dataframe
+    fileNames <-
+      air %>% select(avgfilename, modelfilename) %>% filter(airfields == airfield)
+
+    
+    # Read the Averages from file system
+    data <- readRDS(paste0(fileNames$avgfilename))
+
+    # Convert the input to date format and convert to Day of Week
+    #data <-
+      data %>% filter(DAYOFYEAR == lubridate::yday(as.Date(strikedate)))
+
+    # Create Season columns as required by the input to the model
+    data <-
+      data %>% add_column(
+        SEASON.winter = 0,
+        SEASON.summer = 0,
+        SEASON.fall = 0,
+        SEASON.spring = 0
+      )
+
+    # Fill the season columns based on the value in the Averages dataframe
+    if (data$SEASON == 1) {
+      data$SEASON.winter <- 1
+    } else if (data$SEASON == 2) {
+      data$SEASON.spring <- 1
+    } else if (data$SEASON == 3) {
+      data$SEASON.summer <- 1
+    } else {
+      data$SEASON.fall <- 1
+    }
+
+    # Remove Season column and make all columns numeric
+    data <-
+      data %>% select(-SEASON) %>% mutate_all(as.numeric)
+
+    
+    # Load model from RDS
+    model <- readRDS((paste0(fileNames$modelfilename)))
+    
+    # Call predict with type = raw to get the risk levels
+    predicted.raw <- predict(model, data, type = "raw")
+    
+    # Call Predict with type = prob to get probabilities
+    predicted.prob <- predict(model, data, type = "prob")
+    
+    predicted.prob
+    # Create results dataframe for use in UI
+    strike.results <-
+      data.frame("STRIKERISKLEVEL" = predicted.raw,
+                 "STRIKEPROBABILITY" = predicted.prob)
+    
+    # Return dataframe
+    strike.results
+  }
+#Run the function
+risk<-getDataAndRunPredict("KDEN",Sys.Date())
+#Add the date 
+risk$date <- seq(ymd("2020/1/1"), ymd("2020/12/31"), by = "day")
+#Add the month 
+risk$month <- lubridate::month(risk$date,label= TRUE, abbr = FALSE)
+#counts the number of lines assigned by the month and risk level 
+risk %>%  group_by(month,STRIKERISKLEVEL) %>% 
+  tally()
 ```

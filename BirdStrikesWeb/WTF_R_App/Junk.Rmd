@@ -8,13 +8,64 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
-source("Functions.R")
+#source("Functions.R")'
+
+#---------------------------- Libraries ----------------------------- 
+
+  # Creating a vector of packages used within
+  required.packages <- c("base","jsonlite","leaflet","lubridate","magrittr","padr","plotly","purrr","raster",
+                         "rgdal","rgeos","rvest","selectr","shiny","shinyjs","sp","stringr","urltools","utils","xml2","xts","zoo","tidyverse","shinydashboard","shinythemes","shinyWidgets",'car','caret','data.table','pROC','ranger','Rtsne','xgboost','caretEnsemble')
+  
+  # Function to Install and Load R Packages
+  install.load.packages <- function(required.packages){
+    required.packages <-
+      required.packages[!(required.packages %in% installed.packages()[, "Package"])]
+    if (length(required.packages)){
+      install.packages(required.packages, repos = 'http://cran.us.r-project.org')
+    }
+    for (package.name in required.packages)
+    {
+      library(package.name,
+              character.only = TRUE,
+              quietly = TRUE)
+    }
+  }
+  
+  # Call the Function
+  install.load.packages(required.packages)
+  
+  # Including the packages for use
+  for (package in required.packages) {
+    library(package, character.only = TRUE)
+  }
+
+  
+library("rebird")
+library("mapr")
+  
+  air <- data.frame(
+  airfields = c("KDEN",
+                "KDFW",
+                "KORD",
+                "KSMF"),
+  latitude = c(39.86169815,
+               32.896801,
+               41.9786,
+               38.69540024),
+  longitude = c(-104.6729965,
+                -97.038002,
+                -87.9048,
+                -121.5910034),
+  strikes = c(2814,
+              2170,1557,1891))
+
+  
 ```
 
 ```{r}
-data %>%  
-  group_by(`AIRPORT ID`) %>% 
-  summarise(Strikes = sum(STRIKECOUNT))
+# data %>%  
+#   group_by(`AIRPORT ID`) %>% 
+#   summarise(Strikes = sum(STRIKECOUNT))
 
 ```
 
@@ -49,12 +100,8 @@ long<-coord[1,3]
 
 ```{r}
 
-risk<-getDataAndRunPredict("KDEN",Sys.Date())
-install.packages("auk")
-library("rebird")
-
-
-devtools::install_github("ropensci/rebird")
+#install.packages("auk")
+#devtools::install_github("ropensci/rebird")
 
 ```
 
@@ -118,13 +165,155 @@ getDataAndRunPredict <- function(airfield, strikedate) {
     # Return dataframe
     strike.results
   }
-#Run the function
-risk<-getDataAndRunPredict("KDEN",Sys.Date())
-#Add the date 
-risk$date <- seq(ymd("2020/1/1"), ymd("2020/12/31"), by = "day")
-#Add the month 
-risk$month <- lubridate::month(risk$date,label= TRUE, abbr = FALSE)
-#counts the number of lines assigned by the month and risk level 
-risk %>%  group_by(month,STRIKERISKLEVEL) %>% 
-  tally()
+# #Run the function
+# risk<-getDataAndRunPredict("KDEN",Sys.Date())
+# #Add the date 
+# risk$date <- seq(ymd("2020/1/1"), ymd("2020/12/31"), by = "day")
+# #Add the month 
+# risk$month <- lubridate::month(risk$date,label= TRUE, abbr = FALSE)
+# #counts the number of lines assigned by the month and risk level 
+# risk %>%  group_by(month,STRIKERISKLEVEL) %>% 
+#   tally()
+# 
+# tail(risk)
+
+```
+
+```{r}
+#install.packages("units")
+library(rebird)
+
+
+EBIRD_KEY <- 'ldto4uofjnf7'
+dist <- 20
+
+#region_codes = ['US-CO-031','US-CO-001','US-CO-005', 'US-CO-059']
+
+str(birds)
+birds <- rebird::ebirdgeo(species = NULL,
+                          lat = air[1,2],
+                          lng = air[1,3],
+                          back = 30,
+                          dist = as.numeric(
+                            units::set_units(dist, "mi")),
+                          key = EBIRD_KEY)
+
+birds<-birds %>% group_by(lat,lng) %>% 
+  summarise(howMany = sum(howMany))
+
+# birds2 <- spocc::occ(from = "ebird",
+#                        ebirdopts = list(method = "ebirdgeo",
+#                                         species = NULL,
+#                                         lat = air[1,3],
+#                                         lng = air[1,2],
+#                                         back = 30,
+#                                         dist = as.numeric(
+#                                           units::set_units(dist, "mi"))))
+# 
+# mapr::map_leaflet(birds2,
+#                   color = "blues9",
+#                   lat = birds2$ebird$meta$opts$lat,
+#                   lng = birds2$ebird$meta$opts$lat)
+
+
+
+# Group by zipcode and sum of offense counts
+# heatmap.by.zipcode <-
+#   crime_data %>% dplyr::select(zip, latitude, longitude,offense_count) %>%
+#   group_by(
+#     zip,
+#     latitude, 
+#     longitude
+#   ) %>%  dplyr::summarize(Count = sum(offense_count)) %>%
+#   arrange(desc(Count))
+# add a dark matter map and display the intensity
+
+leaflet(birds) %>% addProviderTiles(providers$CartoDB.DarkMatter) %>%
+  setView(zoom = 11, lat = air[1,2], lng = air[1,3]) %>%
+  addCircleMarkers(air[1,2],air[1,3]) %>% 
+  leaflet.extras::addHeatmap(
+    lat = ~ birds$lat,
+    lng = ~ birds$lng,
+    blur = 20,
+    max = 0.05,
+    radius = 15)
+
+```
+
+
+
+```{r}
+
+leaflet(birds) %>% addProviderTiles(providers$OpenStreetMap) %>% 
+  setView(zoom = 11, lat = air[1,2], lng = air[1,3]) %>%
+  addProviderTiles(providers$OpenWeatherMap.Precipitation,
+                   options=providerTileOptions(apiKey="99f521810d0fef37f59930f36dbb2256")) %>% 
+  leaflet.extras::addHeatmap(
+    lat = ~ birds$lat,
+    lng = ~ birds$lng,
+    blur = 20,
+    max = 0.05,
+    radius = 15) 
+
+
+```
+
+
+```{r}
+# bounds <- map('state', c('Texas'), fill=TRUE, plot=FALSE)
+# icons <- awesomeIcons(
+#     icon = 'disc',
+#     iconColor = 'black',
+#     library = 'ion', # Options are 'glyphicon', 'fa', 'ion'.
+#     markerColor = 'blue',
+#     squareMarker = TRUE
+# )
+# crime_data_map <- crime_data %>% dplyr::select(zip, latitude, longitude) %>% distinct
+# maxLong = max(crime_data_map$longitude)
+# maxLat = max(crime_data_map$latitude)
+# minLong = min(crime_data_map$longitude)
+# minLat = min(crime_data_map$latitude)
+# # Create the Leaflet map widget and add some map layers.
+# # We use the pipe operator %>% to streamline the adding of
+# # layers to the leaflet object. The pipe operator comes from
+# # the magrittr package via the dplyr package.
+# leaflet(data = crime_data_map) %>%
+#   setView(zoom = 100, lat = 29.10, lng = -95.10) %>%
+#   addProviderTiles("CartoDB.Positron", group = "Map") %>%
+#   addProviderTiles("Esri.WorldImagery", group = "Satellite") %>%
+#   addProviderTiles("Esri.WorldShadedRelief", group = "Relief") %>%
+#   # Marker data are from the sites data frame. We need the ~ symbols
+#   # to indicate the columns of the data frame.
+#   addMarkers(
+#     ~ longitude,
+#     ~ latitude,
+#     label = ~ zip,
+#     group = "Sites",
+#     icon = icons
+#   ) %>%
+#   addPolygons(
+#     data = bounds,
+#     group = "States",
+#     weight = 2,
+#     fillOpacity = 0
+#   ) %>%
+#   addScaleBar(position = "bottomleft") %>%
+#   addLayersControl(
+#     baseGroups = c("Map", "Satellite", "Relief"),
+#     overlayGroups = c("Sites", "States"),
+#     options = layersControlOptions(collapsed = FALSE)
+#   ) %>% fitBounds(minLong, minLat, maxLong, maxLat)
+
+
+```
+
+
+```{r}
+leaflet() %>%
+    addProviderTiles(providers$OpenStreetMap) %>%
+    setView(-122.36075812146, 35.6759920119894, zoom = 11) %>% 
+    addProviderTiles(providers$OpenWeatherMap.Precipitation,
+        options=providerTileOptions(apiKey="99f521810d0fef37f59930f36dbb2256"))
+
+
 ```

@@ -1,34 +1,12 @@
 
 #---------------------------- Libraries ----------------------------- 
-
-  # Creating a vector of packages used within
-  required.packages <- c("base","jsonlite","leaflet","lubridate","magrittr","padr","plotly","purrr","raster",
-                         "rgdal","rgeos","rvest","selectr","shiny","shinyjs","sp","stringr","urltools","utils",
-                         "xml2","xts","zoo","tidyverse","shinydashboard","shinythemes","shinyWidgets",  'car',
-                         'caret','data.table','pROC','ranger','Rtsne','xgboost','caretEnsemble')
-  
-  # Function to Install and Load R Packages
-  install.load.packages <- function(required.packages){
-    required.packages <-
-      required.packages[!(required.packages %in% installed.packages()[, "Package"])]
-    if (length(required.packages)){
-      install.packages(required.packages, repos = 'http://cran.us.r-project.org')
-    }
-    for (package.name in required.packages)
-    {
-      library(package.name,
-              character.only = TRUE,
-              quietly = TRUE)
-    }
-  }
-  
-  # Call the Function
-  install.load.packages(required.packages)
-  
-  # Including the packages for use
-  for (package in required.packages) {
-    library(package, character.only = TRUE)
-  }
+  #Installing pacman  
+  if (!require("pacman")) install.packages("pacman"); library(pacman)
+  #enable pacman to call the required libraries  
+  pacman::p_load(base,jsonlite,leaflet,lubridate,magrittr,padr,plotly,purrr,raster,rgdal,
+                 rgeos,rvest,selectr,shiny,shinyjs,sp,stringr,urltools,utils,xml2,xts,zoo,
+                 tidyverse,shinydashboard,shinythemes,shinyWidgets,car,caret,data.table,pROC,ranger,Rtsne,
+                 xgboost,caretEnsemble,rebird,leaflet.extras,leaflet,shinyBS,png)
   
 #---------------------------- Predefined Values ----------------------------- 
   ###### Predefined Values 
@@ -71,6 +49,11 @@
       "data/Avgs_KSMF.RDS"
     )
   )
+  
+  #Ebird API Key
+  EBIRD_KEY <- 'ldto4uofjnf7'
+  
+
   
 #---------------------------- Functions ----------------------------- 
   # Purpose: Function generates the input to the model based on the

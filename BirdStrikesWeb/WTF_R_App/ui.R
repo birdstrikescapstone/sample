@@ -2,8 +2,9 @@
  source("Functions.R")
 #---------------------------- Pilot App ----------------------------- 
 #R User Interface
-dashboardPage(skin = "purple",
+dashboardPage(skin = "blue",
               dashboardHeader(title = "Birdstrikes"),
+              
 
               #Sidebar for inputs
               dashboardSidebar(
@@ -23,26 +24,58 @@ dashboardPage(skin = "purple",
               ),
               #Body
               dashboardBody(
+                fluidRow(),
+                  
                 fluidRow(
                   infoBoxOutput("vboxrisk"),
                   valueBoxOutput("vboxstrikes"),
-                  valueBoxOutput("vboxengf")
-                  ),
-                fluidRow(id = "second",
-                         column(width = 4 ,
-                                height = 12,
-                                style = "border: 1px solid black;",
-                                leaflet::leafletOutput("map"))
-                         ),
-
+                  valueBoxOutput('vboxengf')),
+                    # actionButton(inputId='vboxengf', label="Learn More",
+                    #                           icon = icon("bird"), 
+                    #                           onclick ="window.open('https://wildlife.faa.gov/add')"))
+                  
+                
                 fluidRow(
-                  tableOutput("summary"))
+                  # box(tags$style(type = "text/css", "html, body {width:100%;height:200%}"),
+                  #            leaflet::leafletOutput("map"),
+                  #            absolutePanel(id="controls",
+                  #                          style="z-index:500;",
+                  #                          class = "panel panel-default",
+                  #                          draggable = TRUE),
+                  #            width = 12)
+                  
+                  column(12, align = "center",
+                    box(
+                      width = 10,
+                      title = "Map of Airfield:",
+                      status = "primary",
+                      solidHeader = TRUE,
+                      collapsible = FALSE,
+                      height = "100%",
+                      leafletOutput(outputId = "map", width="100%", height = 940))),
+                  box(uiOutput("tag"),
+                      width = 4,
+                      height = 3),
+                  valueBoxOutput("box_01"),
+                  bsModal("mod","Report a Strike","btn")
+                  
+                  ),
+                
+                
+                # fluidRow(
+                #   box(tableOutput("summary"),
+                #   width = 4,
+                #   background = "light-blue",
+                #   p("This is content. The background color is set to light-blue")))
+                # ,fluidRow(
+                #   align="LEFT", tags$img(src='images/1 Logo.png', width = "300px")
+                # ),
 
               )
 
 )
  
- ##hyperlink the faa strike data base as an option 
+##hyperlink the faa strike data base as an option 
 
 # #---------------------------- OTHER UI -----------------------------
 # shinyUI(navbarPage(title = "BirdStrikes",

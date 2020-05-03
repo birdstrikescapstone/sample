@@ -18,23 +18,46 @@ function(input, output, session) {
 
   })
   output$map <- renderLeaflet({
+    #get the coordinates of the input of the user 
     coord <- air %>%
       filter(airfields == input$airfield)
     lat<- coord[1,2]
     long<-coord[1,3]
     
-    mymap <- leaflet() %>% 
-      addProviderTiles(providers$OpenStreetMap,
-                       options = providerTileOptions(noWrap = TRUE)) %>% 
-      addMarkers(lng = air$longitude, lat = air$latitude, popup = names(air)) %>% 
-      addCircleMarkers(air$longitude,air$latitude,
-                       sqrt(air$strikes) * 0.79899999) %>%
-      addPopups(air$longitude,air$latitude,
-                htmltools::htmlEscape(paste(
-                  paste(air$airfields, sep = " "),
-                  paste("Strikes:", as.character(air$strikes), sep = " "),
-                  sep = ", ")))
-    mymap
+    #get the weather data on the map
+    owm_data <- find_city(lat = coord[1,2], lon = coord[1,3] , units = "imperial") %>%
+      owmr_as_tibble()
+    
+    #get the bird data 
+    birds <- rebird::ebirdgeo(species = NULL,
+                              lat = coord[1,2],
+                              lng = coord[1,3],
+                              back = 30,
+                              dist = as.numeric(
+                                units::set_units(30, "mi")),
+                              key = EBIRD_KEY)
+    #group the bird data 
+    birds<- birds %>% group_by(lat,lng) %>% 
+      summarise(howMany = sum(howMany))
+    
+    #map the data 
+    leaflet(birds) %>% addProviderTiles(providers$OpenStreetMap) %>% 
+      setView(zoom = 9.5, lat = coord[1,2], lng = coord[1,3]) %>%
+      addProviderTiles(providers$OpenWeatherMap.Precipitation,
+                       options=providerTileOptions(apiKey="99f521810d0fef37f59930f36dbb2256")) %>% 
+      owmr::add_weather(
+        owm_data,
+        template = "<b>{{name}}</b>, {{temp}}<c2><b0>F",
+        icon = owm_data$weather_icon) %>% 
+      addMarkers(lng = air$longitude, lat = air$latitude, popup = names(air)) %>%
+      leaflet.extras::addHeatmap(
+        lat = ~ birds$lat,
+        lng = ~ birds$lng,
+        blur = 20,
+        max = 0.05,
+        radius = 15) 
+    
+
   })
   output$vboxengf<-renderValueBox({
     valueBox(
@@ -42,7 +65,10 @@ function(input, output, session) {
       subtitle = tags$p("TEXT", style = "font-size: 200%;"),
       icon = icon("plane"),
       color = "yellow")
-      })
+    })
+  
+  
+  
   output$vboxstrikes <-renderValueBox({
     t <- data %>% 
       filter(`AIRPORT ID`== input$airfield) %>% 
@@ -82,7 +108,28 @@ function(input, output, session) {
   })
   
   
-  
+  output$box_01 <- renderValueBox({
+    box1<-valueBox(value=20,
+                   icon = icon("users",lib="font-awesome"),
+                   color = "blue",
+                   href="https://wildlife.faa.gov/add",
+                   subtitle=HTML("<button id=\"button\" type=\"button\" class=\"btn btn-default action-button\">Report a Strike</button>")
+    )
+    box1$children[[1]]$attribs$class<-"action-button"
+    box1$children[[1]]$attribs$id<-"button_box_01"
+    
+
+    return(box1)
+  })
+  observeEvent(input$button_box_01, {
+    toggleModal(session,"mod","open")
+    })
+  output$tag <- renderUI({
+   # urlfaa<- a("Click to Report a Strike", href="https://wildlife.faa.gov/add")
+    tags$a(imageOutput("www/FAA.png"),
+           href="https://wildlife.faa.gov/add")
+    #tagList(urlfaa)
+  })
 }
 
 

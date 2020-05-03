@@ -3,10 +3,10 @@
   #Installing pacman  
   if (!require("pacman")) install.packages("pacman"); library(pacman)
   #enable pacman to call the required libraries  
-  pacman::p_load(base,jsonlite,leaflet,lubridate,magrittr,padr,plotly,purrr,raster,rgdal,
-                 rgeos,rvest,selectr,shiny,shinyjs,sp,stringr,urltools,utils,xml2,xts,zoo,
+  pacman::p_load(base,jsonlite,leaflet,lubridate,plotly,purrr,
+                 shiny,shinyjs,sp,tidyverse,urltools,utils,xml2,xts,zoo,
                  tidyverse,shinydashboard,shinythemes,shinyWidgets,car,caret,data.table,pROC,ranger,Rtsne,
-                 xgboost,caretEnsemble,rebird,leaflet.extras,leaflet,shinyBS,png)
+                 xgboost,caretEnsemble,rebird,leaflet.extras,leaflet,shinyBS,owmr)
   
 #---------------------------- Predefined Values ----------------------------- 
   ###### Predefined Values 
@@ -52,6 +52,9 @@
   
   #Ebird API Key
   EBIRD_KEY <- 'ldto4uofjnf7'
+  
+  #Weather APi
+  Sys.setenv(OWM_API_KEY = "99f521810d0fef37f59930f36dbb2256")
   
 
   

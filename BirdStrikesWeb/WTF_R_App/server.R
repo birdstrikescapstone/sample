@@ -32,7 +32,7 @@ function(input, output, session) {
     birds <- rebird::ebirdgeo(species = NULL,
                               lat = coord[1,2],
                               lng = coord[1,3],
-                              back = 30,
+                              back = 1,
                               dist = as.numeric(
                                 units::set_units(30, "mi")),
                               key = EBIRD_KEY)
@@ -126,7 +126,7 @@ function(input, output, session) {
     })
   output$tag <- renderUI({
    # urlfaa<- a("Click to Report a Strike", href="https://wildlife.faa.gov/add")
-    tags$a(imageOutput("www/FAA.png"),
+    tags$a(imageOutput("www/images/FAA.png"),
            href="https://wildlife.faa.gov/add")
     #tagList(urlfaa)
   })

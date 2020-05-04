@@ -1,173 +1,268 @@
-# library("shiny")
-# library("shinydashboard")
-# library("shinyBS")
-# 
-# header <- dashboardHeader(title = "reporductible example")
-# 
-# body <- dashboardBody(valueBoxOutput("box_01"),
-#                       bsModal("modal", "foo", trigger = "", "bar"))
-# sidebar <- dashboardSidebar()
-# 
-# ui <- dashboardPage(header,sidebar,body,skin="green")
-# 
-# server = function(input, output, session) {
-#   # ----- First info box synthesis menu
-#   output$box_01 <- renderValueBox({
-#     entry_01 <- "BlaBla"
-#     valueBox(value=entry_01, 
-#              icon = icon("users",lib="font-awesome"),
-#              width=NULL,
-#              color = "blue",
-#              subtitle = HTML("<b>my substitle</b> <button id=\"button\" type=\"button\" class=\"btn btn-default action-button\">Show modal</button>")
-#     )
-#   })
-#   
-#   observeEvent(input$button, {
-#     toggleModal(session, "modal", "open")
-#   })
-# }
-# 
-# runApp(list(ui = ui, server = server))
+source("Functions.R")
 
-
-
-
-# runApp(
-#   list(ui = fluidPage(
-#     uiOutput("tab")
-#   ),
-#   server = function(input, output, session){
-#     url <- a("Google Homepage", href="https://www.google.com/")
-#     output$tab <- renderUI({
-#       tagList("URL link:", url)
-#     })
-#   })
-# )
-
-
-
-
-
-
-library(googleVis)
-library(shiny)
-library(ROpenWeatherMap)
-
-g=list('Temperature'='temp','Minimum Temperature'='temp_min','Maximum temperature'='temp_max','Pressure'='pressure','Sea Level'='sea_level','Ground level'='grnd_level','Humidity'='humidity')
-
-api_key<-"99f521810d0fef37f59930f36dbb2256"
-ui<-shinyUI(fluidPage(
+server<- function(input, output, session) {
+  # 
+  # d <- reactive({
+  #   dist <- switch(
+  #     input$search,
+  #     default="KDEN",
+  #     kden = "KDEN",
+  #     kdfw = "KDFW",
+  #     kord = "KORD",
+  #     ksmf = "KSMF")
+  #   })
   
-  # Application title
-  titlePanel("Weather forecast using ROpenWeatherMap"),
-  
-  
-  sidebarLayout(
-    sidebarPanel(
-      sliderInput("time",
-                  h3("Forecast"),
-                  min = 1,
-                  max = 37,
-                  value = 1,animate =  animationOptions(interval = 4000,
-                                                        playButton = icon('play', "fa-3x"),
-                                                        pauseButton = icon('pause', "fa-3x"))),
-      selectInput("feature", label = h3("Feature"), 
-                  choices = list(g=g), selected = 1)          
-    ),
+  output$summary <- renderTable({
+    getDataAndRunPredict(input$airfield,input$date)
     
     
-    mainPanel(
-      htmlOutput("gvis")
-    )
-  )
-))
-
-library(ROpenWeatherMap)
-library(shiny)
-
-states=c("Denver"
-         ,"Arunachal Pradesh"
-         ,"Assam"
-         ,"Bihar"
-         ,"Chhattisgarh"
-         ,"Goa"
-         ,"Gujarat"
-         ,"Haryana"
-         ,"Himachal Pradesh"
-         ,"Jammu and Kashmir"
-         ,"Jharkhand"
-         ,"Karnataka"
-         ,"Kerala"
-         ,"Madhya Pradesh"
-         ,"Maharashtra"
-         ,"Manipur"
-         ,"Meghalaya"
-         ,"Mizoram"
-         ,"Nagaland"
-         ,"Odisha"
-         ,"Punjab"
-         ,"Rajasthan"
-         ,"Sikkim"
-         ,"Tamil Nadu"
-         ,"Tripura"
-         ,"Uttar Pradesh"
-         ,"Uttarakhand"
-         ,"West Bengal"
-         ,"Andaman and Nicobar Islands"
-         ,"Chandigarh"
-         ,"Nepal"
-         ,"Bhutan"
-         ,"Bangladesh"
-         ,"Dadra and Nagar Haveli"
-         ,"Daman and Diu"
-         ,"National Capital Territory of Delhi" 
-         ,"Lakshadweep" ,"Pondicherry") 
-len=length(states)
-
-data=NULL
-for(i in 1:len)
-{
-  print(i)
-  temp=get_weather_forecast(api_key,city=states[i])
-  temp=temp$list$main
-  temp$state=states[i]
-  temp$index=1:nrow(temp)
-  data=as.data.frame(rbind(data,temp))
-}
-d=gsub("Odisha","Orissa",data$state)
-d=gsub("National Capital Territory of Delhi","Delhi",d)
-d=gsub("Uttarakhand","Uttaranchal",d)
-data$state=d
-data$state=as.character(data$state)
-
-server<- shinyServer(function(input, output) {
-  
-  output$gvis = renderGvis({
-    d1=subset(data,index==input$time)
-    #print("processing")
+  })
+  output$map <- renderLeaflet({
+    #get the coordinates of the input of the user 
+    coord <- air %>%
+      filter(airfields == input$airfield)
+    lat<- coord[1,2]
+    long<-coord[1,3]
     
-    #   gvisGeoChart(d1,
-    #               locationvar="state", colorvar="temp",
-    #               options=list(region="IN", displayMode="regions", 
-    #                           resolution="provinces",
-    #                          width=500, height=400,
-    #                         colorAxis="{colors:['#FFFFFF', '#0000FF']}"
-    #           ))
+    #get the weather data on the map
+    owm_data <- find_city(lat = coord[1,2], lon = coord[1,3] , units = "imperial") %>%
+      owmr_as_tibble()
     
-    G3= gvisGeoChart(d1, 
-                     locationvar = "state", 
-                     colorvar = input$feature,
-                     options=list(region="IN", 
-                                  displayMode="regions", 
-                                  resolution="provinces",
-                                  width=500,height=400))
-    Tbl <- gvisTable(d1[,c('state',input$feature)], options=list(height=300), 
-                     formats=list(temp="#,###.0"))
-    gvisMerge(G3, Tbl, horizontal=T)
+    #get the bird data 
+    birds <- rebird::ebirdgeo(species = NULL,
+                              lat = coord[1,2],
+                              lng = coord[1,3],
+                              back = 30,
+                              dist = as.numeric(
+                                units::set_units(30, "mi")),
+                              key = EBIRD_KEY)
+    #group the bird data 
+    birds<- birds %>% group_by(lat,lng) %>% 
+      summarise(howMany = sum(howMany))
+    
+    #map the data 
+    leaflet(birds) %>% addProviderTiles(providers$OpenStreetMap) %>% 
+      setView(zoom = 9.5, lat = coord[1,2], lng = coord[1,3]) %>%
+      addProviderTiles(providers$OpenWeatherMap.Precipitation,
+                       options=providerTileOptions(apiKey="99f521810d0fef37f59930f36dbb2256")) %>% 
+      owmr::add_weather(
+        owm_data,
+        template = "<b>{{name}}</b>, {{temp}}<c2><b0>F",
+        icon = owm_data$weather_icon) %>% 
+      addMarkers(lng = air$longitude, lat = air$latitude, popup = names(air)) %>%
+      leaflet.extras::addHeatmap(
+        lat = ~ birds$lat,
+        lng = ~ birds$lng,
+        blur = 20,
+        max = 0.05,
+        radius = 15) 
+    
+    
+  })
+  output$vboxengf<-renderValueBox({
+    valueBox(
+      "Engine Failure:",
+      subtitle = tags$p("TEXT", style = "font-size: 200%;"),
+      icon = icon("plane"),
+      color = "yellow")
   })
   
   
-})
+  
+  output$vboxstrikes <-renderValueBox({
+    t <- data %>% 
+      filter(`AIRPORT ID`== input$airfield) %>% 
+      group_by(`AIRPORT ID`) %>% 
+      summarise(STRIKES = sum(STRIKECOUNT)) %>% 
+      arrange(-STRIKES)  
+    
+    valueBox(
+      paste(input$airfield," Historical Strikes:"),
+      subtitle = tags$p(t[1,2], style = "font-size: 200%;"),
+      icon = icon("feather"),
+      color = "aqua")
+    
+  })
+  output$vboxrisk <-renderValueBox({
+    risk <- getDataAndRunPredict(input$airfield,input$date)
+    if(risk[1,1] == "L"){
+      valueBox(
+        "Birdstrike Risk Level:",
+        subtitle = tags$p(paste(round(risk[1,3],1),"LOW RISK"), style = "font-size: 200%;"),
+        icon = icon("earlybirds"),
+        color = "green")
+    }
+    else if(risk[1,1] == "M"){
+      valueBox(
+        "Birdstrike Risk Level:",
+        subtitle = tags$p("MEDIUM RISK", style = "font-size: 200%;"),
+        icon = icon("earlybirds"),
+        color = "yellow")
+    }
+    else valueBox(
+      "Birdstrike Risk Level:",
+      subtitle = tags$p(" ALERT! HIGH RISK!", style = "font-size: 200%;"),
+      icon = icon("earlybirds"),
+      color = "red")
+    
+  })
+  
+  
+  output$box_01 <- renderValueBox({
+    box1<-valueBox(value=20,
+                   icon = icon("users",lib="font-awesome"),
+                   color = "blue",
+                   href="https://wildlife.faa.gov/add",
+                   subtitle=HTML("<button id=\"button\" type=\"button\" class=\"btn btn-default action-button\">Report a Strike</button>")
+    )
+    box1$children[[1]]$attribs$class<-"action-button"
+    box1$children[[1]]$attribs$id<-"button_box_01"
+    
+    
+    return(box1)
+  })
+  observeEvent(input$button_box_01, {
+    toggleModal(session,"mod","open")
+  })
+  #output$tag <- renderUI({
+    # urlfaa<- a("Click to Report a Strike", href="https://wildlife.faa.gov/add")
+    #tags$a(imageOutput("www/images/FAA.png"),
+          # href="https://wildlife.faa.gov/add")
+    #tagList(urlfaa)
+  })
+}
+
+#  #Requiring all of the predefined libraries and functions
+#---------------------------- Pilot App ----------------------------- 
+#R User Interface
+ui<-dashboardPage(skin = "blue",
+              dashboardHeader(title = "Birdstrikes"),
+              
+              
+              #Sidebar for inputs
+              dashboardSidebar(
+                sidebarMenu(
+                  menuItem("Pilot Dashboard", tabName = "Inputs", icon = icon("dashboard")),
+                  selectInput("airfield","Airfields:",
+                              airfields),
+                  
+                  dateInput("date","Date:",
+                            value = as.character(Sys.Date()),
+                            min = as.character(Sys.Date()),
+                            max = Sys.Date()+500),
+                  
+                  menuItem("About WTF!", tabName = "Inputs", icon = icon("users"))
+                  
+                )
+              ),
+              #Body
+              dashboardBody(
+                fluidRow(),
+                
+                fluidRow(
+                  infoBoxOutput("vboxrisk"),
+                  valueBoxOutput("vboxstrikes"),
+                  valueBoxOutput('vboxengf')),
+                # actionButton(inputId='vboxengf', label="Learn More",
+                #                           icon = icon("bird"), 
+                #                           onclick ="window.open('https://wildlife.faa.gov/add')"))
+                
+                
+                fluidRow(
+                  # box(tags$style(type = "text/css", "html, body {width:100%;height:200%}"),
+                  #            leaflet::leafletOutput("map"),
+                  #            absolutePanel(id="controls",
+                  #                          style="z-index:500;",
+                  #                          class = "panel panel-default",
+                  #                          draggable = TRUE),
+                  #            width = 12)
+                  
+                  column(12, align = "center",
+                         box(
+                           width = 10,
+                           title = "Map of Airfield:",
+                           status = "primary",
+                           solidHeader = TRUE,
+                           collapsible = FALSE,
+                           height = "100%",
+                           leafletOutput(outputId = "map", width="100%", height = 940))),
+                  box(uiOutput("tag"),
+                      width = 4,
+                      height = 3),
+                  valueBoxOutput("box_01"),
+                  bsModal("mod","Report a Strike","btn")
+                  
+                ),
+                
+                
+                # fluidRow(
+                #   box(tableOutput("summary"),
+                #   width = 4,
+                #   background = "light-blue",
+                #   p("This is content. The background color is set to light-blue")))
+                # ,fluidRow(
+                #   align="LEFT", tags$img(src='images/1 Logo.png', width = "300px")
+                # ),
+                
+              )
+              
+)
+
+##hyperlink the faa strike data base as an option 
+
+# #---------------------------- OTHER UI -----------------------------
+# shinyUI(navbarPage(title = "BirdStrikes",
+#                    theme = "style/style.css",
+#                    footer = includeHTML("footer.html"),
+#                    fluid = TRUE,
+#                    collapsible = TRUE,
+# 
+#                    # tab panel 1 - Home
+#                    tabPanel("Home",
+#                             includeHTML("home.html"),
+#                             tags$script(src = "plugins/scripts.js"),
+#                             tags$head(
+#                               tags$link(rel = "stylesheet",
+#                                         type = "text/css",
+#                                         href = "plugins/font-awesome-4.7.0/css/font-awesome.min.css"),
+#                               tags$link(rel = "icon",
+#                                         type = "image/png",
+#                                         href = "images/logo_icon.png")
+#                             )
+#                    ),
+# 
+#                    # tab panel 2 - Neighborhood Browser
+#                    tabPanel("BirdStrike App",
+#                             "neighborhoodDescription()",
+#                             includeHTML("scrollToTop.html")
+#                    ),
+# 
+#                    # tab panel 3 - Location Comparison
+#                    tabPanel("Airfield Analysis",
+#                             "propertyComparison()"
+#                    ),
+# 
+#                    # tab panel 4 - About
+#                    tabPanel("About WTF",
+#                             includeHTML("about.html"),
+#                             shinyjs::useShinyjs(),
+#                             tags$head(
+#                               tags$link(rel = "stylesheet",
+#                                         type = "text/css",
+#                                         href = "plugins/carousel.css"),
+#                               tags$script(src = "plugins/holder.js")
+#                             ),
+#                             tags$style(type="text/css",
+#                                        ".shiny-output-error { visibility: hidden; }",
+#                                        ".shiny-output-error:before { visibility: hidden; }"
+#                             )
+#                    )
+# 
+# ))
 
 
-runApp(ui,server)
+shiny::runApp(ui,server)
+
+
+
+

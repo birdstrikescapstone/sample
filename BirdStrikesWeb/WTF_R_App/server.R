@@ -61,8 +61,10 @@ function(input, output, session) {
   })
   output$vboxengf<-renderValueBox({
     valueBox(
-      "Engine Failure:",
-      subtitle = tags$p("TEXT", style = "font-size: 200%;"),
+      "Report a Birdstrike (FAA):",
+      #subtitle = tags$p("", style = "font-size: 200%;"),
+      href="https://wildlife.faa.gov/add",
+      subtitle=HTML("<button id=\"button\" type=\"button\" class=\"btn btn-default action-button\">Report a Strike</button>"),
       icon = icon("plane"),
       color = "yellow")
     })
@@ -101,35 +103,35 @@ function(input, output, session) {
     }
     else valueBox(
       "Birdstrike Risk Level:",
-      subtitle = tags$p(" ALERT! HIGH RISK!", style = "font-size: 200%;"),
+      subtitle = tags$p(paste(" ALERT! HIGH RISK! on",input$date), style = "font-size: 200%;"),
       icon = icon("earlybirds"),
       color = "red")
 
   })
   
   
-  output$box_01 <- renderValueBox({
-    box1<-valueBox(value=20,
-                   icon = icon("users",lib="font-awesome"),
-                   color = "blue",
-                   href="https://wildlife.faa.gov/add",
-                   subtitle=HTML("<button id=\"button\" type=\"button\" class=\"btn btn-default action-button\">Report a Strike</button>")
-    )
-    box1$children[[1]]$attribs$class<-"action-button"
-    box1$children[[1]]$attribs$id<-"button_box_01"
-    
-
-    return(box1)
-  })
-  observeEvent(input$button_box_01, {
-    toggleModal(session,"mod","open")
-    })
-  output$tag <- renderUI({
-   # urlfaa<- a("Click to Report a Strike", href="https://wildlife.faa.gov/add")
-    tags$a(imageOutput("www/images/FAA.png"),
-           href="https://wildlife.faa.gov/add")
-    #tagList(urlfaa)
-  })
+  # output$box_01 <- renderValueBox({
+  #   box1<-valueBox(value=20,
+  #                  icon = icon("users",lib="font-awesome"),
+  #                  color = "blue",
+  #                  href="https://wildlife.faa.gov/add",
+  #                  subtitle=HTML("<button id=\"button\" type=\"button\" class=\"btn btn-default action-button\">Report a Strike</button>")
+  #   )
+  #   box1$children[[1]]$attribs$class<-"action-button"
+  #   box1$children[[1]]$attribs$id<-"button_box_01"
+  #   
+  # 
+  #   return(box1)
+  # })
+  # observeEvent(input$button_box_01, {
+  #   toggleModal(session,"mod","open")
+  #   })
+  # output$tag <- renderUI({
+  #  # urlfaa<- a("Click to Report a Strike", href="https://wildlife.faa.gov/add")
+  #   tags$a(imageOutput("www/images/FAA.png"),
+  #          href="https://wildlife.faa.gov/add")
+  #   #tagList(urlfaa)
+  # })
 }
 
 

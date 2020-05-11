@@ -4,7 +4,7 @@
 #R User Interface
 dashboardPage(skin = "blue",
               dashboardHeader(title = "Birdstrikes"),
-              
+
 
               #Sidebar for inputs
               dashboardSidebar(
@@ -25,16 +25,16 @@ dashboardPage(skin = "blue",
               #Body
               dashboardBody(
                 fluidRow(),
-                  
+
                 fluidRow(
                   infoBoxOutput("vboxrisk"),
                   valueBoxOutput("vboxstrikes"),
                   valueBoxOutput('vboxengf')),
                     # actionButton(inputId='vboxengf', label="Learn More",
-                    #                           icon = icon("bird"), 
+                    #                           icon = icon("bird"),
                     #                           onclick ="window.open('https://wildlife.faa.gov/add')"))
-                  
-                
+
+
                 fluidRow(
                   # box(tags$style(type = "text/css", "html, body {width:100%;height:200%}"),
                   #            leaflet::leafletOutput("map"),
@@ -43,25 +43,25 @@ dashboardPage(skin = "blue",
                   #                          class = "panel panel-default",
                   #                          draggable = TRUE),
                   #            width = 12)
-                  
+
                   column(12, align = "center",
                     box(
                       width = 10,
-                      title = "Map of Airfield:",
+                      title = "Map of Current Bird & Weather Conditions at KDEN:",
                       status = "primary",
                       solidHeader = TRUE,
                       collapsible = FALSE,
                       height = "100%",
-                      leafletOutput(outputId = "map", width="100%", height = 940))),
-                  box(uiOutput("tag"),
-                      width = 4,
-                      height = 3),
-                  valueBoxOutput("box_01"),
-                  bsModal("mod","Report a Strike","btn")
-                  
+                      leafletOutput(outputId = "map", width="100%", height = 940)))
+                  #box(uiOutput("tag"),
+                  #    width = 4,
+                  #    height = 3),
+                  #valueBoxOutput("box_01"),
+                  #bsModal("mod","Report a Strike","btn")
+
                   ),
-                
-                
+
+
                 # fluidRow(
                 #   box(tableOutput("summary"),
                 #   width = 4,
@@ -99,13 +99,13 @@ dashboardPage(skin = "blue",
 #                    ),
 # 
 #                    # tab panel 2 - Neighborhood Browser
-#                    tabPanel("BirdStrike App",
+#                    tabPanel("Pilot App",
 #                             "neighborhoodDescription()",
 #                             includeHTML("scrollToTop.html")
 #                    ),
 # 
 #                    # tab panel 3 - Location Comparison
-#                    tabPanel("Airfield Analysis",
+#                    tabPanel("Engine Failure App",
 #                             "propertyComparison()"
 #                    ),
 # 
